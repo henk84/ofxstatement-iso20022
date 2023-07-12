@@ -30,8 +30,30 @@ class Iso20022Plugin(Plugin):
     def get_parser(self, filename: str) -> "Iso20022Parser":
         default_ccy = self.settings.get("currency")
         default_iban = self.settings.get("iban")
+        self.filename = filename
+        version = Iso20022Plugin._get_document_standard_version(self, self.filename)
         parser = Iso20022Parser(filename, currency=default_ccy, iban=default_iban)
         return parser
+
+    def _get_namespace(self, elem: ET.Element) -> str:
+        m = re.match(r"\{(.*)\}", elem.tag)
+        return m.groups()[0] if m else ""
+
+    def _get_document_standard_version(self, filename: str):
+        tree = ET.parse(self.filename)
+
+        # Find out XML namespace and make sure we can parse it
+        ns = self._get_namespace(tree.getroot())
+        version = self._recognize_version(ns)
+        return version
+
+    def _recognize_version(self, ns: str) -> CamtVersion:
+        for ver in CamtVersion:
+            if ns.startswith(ver.value):
+                return ver
+
+        raise exceptions.ParseError(0, "Cannot recognize ISO20022 XML")
+
 
 
 class Iso20022Parser(AbstractStatementParser):
