@@ -31,19 +31,20 @@ class Iso20022Plugin(Plugin):
         default_ccy = self.settings.get("currency")
         default_iban = self.settings.get("iban")
         self.filename = filename
-        version = Iso20022Plugin._get_document_standard_version(self, self.filename)
-        parser = Iso20022Parser(filename, currency=default_ccy, iban=default_iban)
+        self.tree = ET.parse(self.filename)
+        version = Iso20022Plugin._get_document_standard_version(self, self.tree)
+        parser = Iso20022Parser(self.tree, currency=default_ccy, iban=default_iban)
         return parser
 
     def _get_namespace(self, elem: ET.Element) -> str:
         m = re.match(r"\{(.*)\}", elem.tag)
         return m.groups()[0] if m else ""
 
-    def _get_document_standard_version(self, filename: str):
-        tree = ET.parse(self.filename)
+    def _get_document_standard_version(self, tree: str):
+        self.tree = tree
 
         # Find out XML namespace and make sure we can parse it
-        ns = self._get_namespace(tree.getroot())
+        ns = self._get_namespace(self.tree.getroot())
         version = self._recognize_version(ns)
         return version
 
@@ -60,8 +61,8 @@ class Iso20022Parser(AbstractStatementParser):
     version: CamtVersion
     xmlns: Dict[str, str]
 
-    def __init__(self, filename: str, currency: Optional[str] = None, iban: Optional[str] = None):
-        self.filename = filename
+    def __init__(self, tree: str, currency: Optional[str] = None, iban: Optional[str] = None):
+        self.tree = tree
         self.currency = currency
         self.iban = iban
 
@@ -70,15 +71,14 @@ class Iso20022Parser(AbstractStatementParser):
         self.statement = Statement()
         self.statement.currency = self.currency
         self.statement.account_id = self.iban
-        tree = ET.parse(self.filename)
 
         # Find out XML namespace and make sure we can parse it
-        ns = self._get_namespace(tree.getroot())
+        ns = self._get_namespace(self.tree.getroot())
         self.version = self._recognize_version(ns)
         self.xmlns = {"s": ns}
 
-        self._parse_statement_properties(tree)
-        self._parse_lines(tree)
+        self._parse_statement_properties(self.tree)
+        self._parse_lines(self.tree)
 
         return self.statement
 
