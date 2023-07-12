@@ -32,28 +32,9 @@ class Iso20022Plugin(Plugin):
         default_iban = self.settings.get("iban")
         self.filename = filename
         self.tree = ET.parse(self.filename)
-        version = Iso20022Plugin._get_document_standard_version(self, self.tree)
+        version = Iso20022Parser(self.tree)._get_document_standard_version(self.tree)
         parser = Iso20022Parser(self.tree, currency=default_ccy, iban=default_iban)
         return parser
-
-    def _get_namespace(self, elem: ET.Element) -> str:
-        m = re.match(r"\{(.*)\}", elem.tag)
-        return m.groups()[0] if m else ""
-
-    def _get_document_standard_version(self, tree: str):
-        self.tree = tree
-
-        # Find out XML namespace and make sure we can parse it
-        ns = self._get_namespace(self.tree.getroot())
-        version = self._recognize_version(ns)
-        return version
-
-    def _recognize_version(self, ns: str) -> CamtVersion:
-        for ver in CamtVersion:
-            if ns.startswith(ver.value):
-                return ver
-
-        raise exceptions.ParseError(0, "Cannot recognize ISO20022 XML")
 
 
 
@@ -81,6 +62,14 @@ class Iso20022Parser(AbstractStatementParser):
         self._parse_lines(self.tree)
 
         return self.statement
+
+    def _get_document_standard_version(self, tree: str):
+        self.tree = tree
+
+        # Find out XML namespace and make sure we can parse it
+        ns = self._get_namespace(self.tree.getroot())
+        version = self._recognize_version(ns)
+        return version
 
     def _recognize_version(self, ns: str) -> CamtVersion:
         for ver in CamtVersion:
