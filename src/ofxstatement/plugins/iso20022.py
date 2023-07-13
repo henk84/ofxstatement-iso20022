@@ -31,42 +31,38 @@ class Iso20022Plugin(Plugin):
         default_ccy = self.settings.get("currency")
         default_iban = self.settings.get("iban")
 
-        camt_version = self._get_camt_version(filename)
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        camt_version = self._get_namespace(root)
         camt053_version = camt_version.split(':')[-1]
 
         if camt053_version == 'camt.053.001.01':
             parser = Camt053_001_01_Parser(
-                filename,
+                tree,
                 currency=default_ccy,
                 iban=default_iban
             )
         elif camt053_version == 'camt.053.001.02':
             parser = Camt053_001_02_Parser(
-                filename,
+                tree,
                 currency=default_ccy,
                 iban=default_iban
             )
         elif camt053_version == 'camt.053.001.03':
             parser = Camt053_001_03_Parser(
-                filename,
+                tree,
                 currency=default_ccy,
                 iban=default_iban
             )
         elif camt053_version == 'camt.053.001.04':
             parser = Camt053_001_04_Parser(
-                filename,
+                tree,
                 currency=default_ccy,
                 iban=default_iban
             )
         else:
-            parser = Iso20022Parser(filename, currency=default_ccy, iban=default_iban)
+            parser = Iso20022Parser(tree, currency=default_ccy, iban=default_iban) # type: ignore
         return parser
-
-    def _get_camt_version(self, filename: str) -> str:
-        tree = ET.parse(filename)
-        root = tree.getroot()
-        ns = self._get_namespace(root)
-        return ns
 
     def _get_namespace(self, elem: ET.Element) -> str:
         m = re.match(r"\{(.*)\}", elem.tag)
@@ -79,9 +75,9 @@ class Iso20022Parser(AbstractStatementParser):
     xmlns: Dict[str, str]
 
     def __init__(
-        self, filename: str, currency: Optional[str] = None, iban: Optional[str] = None
+        self, tree: ET.ElementTree, currency: Optional[str] = None, iban: Optional[str] = None
     ):
-        self.filename = filename
+        self.tree = tree
         self.currency = currency
         self.iban = iban
 
@@ -90,15 +86,14 @@ class Iso20022Parser(AbstractStatementParser):
         self.statement = Statement()
         self.statement.currency = self.currency
         self.statement.account_id = self.iban
-        tree = ET.parse(self.filename)
 
         # Find out XML namespace and make sure we can parse it
-        ns = self._get_namespace(tree.getroot())
+        ns = self._get_namespace(self.tree.getroot())
         self.version = self._recognize_version(ns)
         self.xmlns = {"s": ns}
 
-        self._parse_statement_properties(tree)
-        self._parse_lines(tree)
+        self._parse_statement_properties(self.tree)
+        self._parse_lines(self.tree)
 
         return self.statement
 
