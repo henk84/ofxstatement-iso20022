@@ -1,6 +1,7 @@
 import datetime
 import enum
 import re
+import logging
 import xml.etree.ElementTree as ET
 from decimal import Decimal
 from typing import Dict, List, Optional
@@ -61,6 +62,9 @@ class Iso20022Plugin(Plugin):
                 iban=default_iban
             )
         else:
+            logging.warning(
+                "Could not determine document standard version, trying with default generic parser."
+            )
             parser = Iso20022Parser(tree, currency=default_ccy, iban=default_iban) # type: ignore
         return parser
 
