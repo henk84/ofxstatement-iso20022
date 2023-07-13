@@ -174,6 +174,7 @@ def test_unsupported() -> None:
     with pytest.raises(exceptions.ParseError):
         parser.parse()
 
+
 def test_parse_camt053() -> None:
     # GIVEN
     config = {"iban": "CHxxxxxxxxxxxxxxxxxxx"}
@@ -205,5 +206,5 @@ def test_parse_camt053() -> None:
     assert line0.memo == u"PAYMENT INFO"
     assert line0.date == datetime.datetime(2023, 1, 25, 0, 0)
     assert line0.date_user == datetime.datetime(2023, 1, 25, 0, 0)
-    #assert line0.payee == u"PAYEE"
+    # assert line0.payee == u"PAYEE"
     assert line0.refnum == "A032-J30K20-03-JF021"

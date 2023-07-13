@@ -35,37 +35,37 @@ class Iso20022Plugin(Plugin):
         tree = ET.parse(filename)
         root = tree.getroot()
         camt_version = self._get_namespace(root)
-        camt053_version = camt_version.split(':')[-1]
+        camt053_version = camt_version.split(":")[-1]
 
-        if camt053_version == 'camt.053.001.01':
+        if camt053_version == "camt.053.001.01":
             parser = Camt053_001_01_Parser(
                 tree,
                 currency=default_ccy,
-                iban=default_iban
+                iban=default_iban,
             )
-        elif camt053_version == 'camt.053.001.02':
+        elif camt053_version == "camt.053.001.02":
             parser = Camt053_001_02_Parser(
                 tree,
                 currency=default_ccy,
-                iban=default_iban
+                iban=default_iban,
             )
-        elif camt053_version == 'camt.053.001.03':
+        elif camt053_version == "camt.053.001.03":
             parser = Camt053_001_03_Parser(
                 tree,
                 currency=default_ccy,
-                iban=default_iban
+                iban=default_iban,
             )
-        elif camt053_version == 'camt.053.001.04':
+        elif camt053_version == "camt.053.001.04":
             parser = Camt053_001_04_Parser(
                 tree,
                 currency=default_ccy,
-                iban=default_iban
+                iban=default_iban,
             )
         else:
             logging.warning(
                 "Could not determine document standard version, trying with default generic parser."
             )
-            parser = Iso20022Parser(tree, currency=default_ccy, iban=default_iban) # type: ignore
+            parser = Iso20022Parser(tree, currency=default_ccy, iban=default_iban)  # type: ignore
         return parser
 
     def _get_namespace(self, elem: ET.Element) -> str:
@@ -73,13 +73,15 @@ class Iso20022Plugin(Plugin):
         return m.groups()[0] if m else ""
 
 
-
 class Iso20022Parser(AbstractStatementParser):
     version: CamtVersion
     xmlns: Dict[str, str]
 
     def __init__(
-        self, tree: ET.ElementTree, currency: Optional[str] = None, iban: Optional[str] = None
+        self,
+        tree: ET.ElementTree,
+        currency: Optional[str] = None,
+        iban: Optional[str] = None,
     ):
         self.tree = tree
         self.currency = currency
