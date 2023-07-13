@@ -30,8 +30,48 @@ class Iso20022Plugin(Plugin):
     def get_parser(self, filename: str) -> "Iso20022Parser":
         default_ccy = self.settings.get("currency")
         default_iban = self.settings.get("iban")
-        parser = Iso20022Parser(filename, currency=default_ccy, iban=default_iban)
+
+        camt_version = self._get_camt_version(filename)
+        camt053_version = camt_version.split(':')[-1]
+
+        if camt053_version == 'camt.053.001.01':
+            parser = Camt053_001_01_Parser(
+                filename,
+                currency=default_ccy,
+                iban=default_iban
+            )
+        elif camt053_version == 'camt.053.001.02':
+            parser = Camt053_001_02_Parser(
+                filename,
+                currency=default_ccy,
+                iban=default_iban
+            )
+        elif camt053_version == 'camt.053.001.03':
+            parser = Camt053_001_03_Parser(
+                filename,
+                currency=default_ccy,
+                iban=default_iban
+            )
+        elif camt053_version == 'camt.053.001.04':
+            parser = Camt053_001_04_Parser(
+                filename,
+                currency=default_ccy,
+                iban=default_iban
+            )
+        else:
+            parser = Iso20022Parser(filename, currency=default_ccy, iban=default_iban)
         return parser
+
+    def _get_camt_version(self, filename: str) -> str:
+        tree = ET.parse(filename)
+        root = tree.getroot()
+        ns = self._get_namespace(root)
+        return ns
+
+    def _get_namespace(self, elem: ET.Element) -> str:
+        m = re.match(r"\{(.*)\}", elem.tag)
+        return m.groups()[0] if m else ""
+
 
 
 class Iso20022Parser(AbstractStatementParser):
@@ -270,6 +310,22 @@ class Iso20022Parser(AbstractStatementParser):
 
     def _findall(self, tree: ET.Element, spath: str) -> List[ET.Element]:
         return tree.findall(_toxpath(spath), self.xmlns)
+
+
+class Camt053_001_01_Parser(Iso20022Parser):
+    pass
+
+
+class Camt053_001_02_Parser(Camt053_001_01_Parser):
+    pass
+
+
+class Camt053_001_03_Parser(Camt053_001_02_Parser):
+    pass
+
+
+class Camt053_001_04_Parser(Camt053_001_03_Parser):
+    pass
 
 
 def _toxpath(spath: str) -> str:
