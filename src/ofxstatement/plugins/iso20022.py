@@ -38,24 +38,28 @@ class Iso20022Plugin(Plugin):
         camt053_version = camt_version.split(":")[-1]
 
         if camt053_version == "camt.053.001.01":
+            logging.debug("File format is %s.", camt053_version)
             parser = Camt053_001_01_Parser(
                 tree,
                 currency=default_ccy,
                 iban=default_iban,
             )
         elif camt053_version == "camt.053.001.02":
+            logging.debug("File format is %s.", camt053_version)
             parser = Camt053_001_02_Parser(
                 tree,
                 currency=default_ccy,
                 iban=default_iban,
             )
         elif camt053_version == "camt.053.001.03":
+            logging.debug("File format is %s.", camt053_version)
             parser = Camt053_001_03_Parser(
                 tree,
                 currency=default_ccy,
                 iban=default_iban,
             )
         elif camt053_version == "camt.053.001.04":
+            logging.debug("File format is %s.", camt053_version)
             parser = Camt053_001_04_Parser(
                 tree,
                 currency=default_ccy,
