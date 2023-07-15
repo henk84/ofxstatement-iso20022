@@ -151,6 +151,7 @@ class Iso20022Parser(AbstractStatementParser):
         if acctCurrency:
             self.statement.currency = acctCurrency
         else:
+            acctCurrency = self.currency if self.currency is not None else None
             if self.statement.currency is None:
                 raise exceptions.ParseError(
                     0,
