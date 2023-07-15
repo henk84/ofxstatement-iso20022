@@ -1,4 +1,5 @@
 import os
+import glob
 import datetime
 from decimal import Decimal
 
@@ -180,31 +181,34 @@ def test_parse_camt053() -> None:
     config = {"iban": "CHxxxxxxxxxxxxxxxxxxx"}
     plugin = Iso20022Plugin(UI(), config)
 
-    parser = plugin.get_parser(os.path.join(SAMPLES_DIR, "camt053.xml"))
+    test_files = glob.glob(SAMPLES_DIR + "/*")
 
-    # WHEN
-    stmt = parser.parse()
+    for file in test_files:
+        parser = plugin.get_parser(file)
 
-    # THEN
-    assert stmt is not None
+        # WHEN
+        stmt = parser.parse()
 
-    assert stmt.account_id == "CHxxxxxxxxxxxxxxxxxxx"
-    assert stmt.currency == "CHF"
-    assert stmt.bank_id == "SAMPLEBANK222"
-    assert stmt.end_balance == Decimal("2116.31")
-    assert stmt.end_date == datetime.datetime(2023, 1, 25, 0, 0)
-    assert stmt.start_balance == Decimal("832.01")
-    assert stmt.start_date == datetime.datetime(2023, 1, 25, 0, 0)
+        # THEN
+        assert stmt is not None
 
-    assert len(stmt.lines) == 1
+        assert stmt.account_id == "CHxxxxxxxxxxxxxxxxxxx"
+        assert stmt.currency == "CHF"
+        assert stmt.bank_id == "SAMPLEBANK222"
+        assert stmt.end_balance == Decimal("2116.31")
+        assert stmt.end_date == datetime.datetime(2023, 1, 25, 0, 0)
+        assert stmt.start_balance == Decimal("832.01")
+        assert stmt.start_date == datetime.datetime(2023, 1, 25, 0, 0)
 
-    assert all(l.amount for l in stmt.lines)
+        assert len(stmt.lines) == 1
 
-    line0 = stmt.lines[0]
+        assert all(l.amount for l in stmt.lines)
 
-    assert line0.amount == Decimal("1284.30")
-    assert line0.memo == u"PAYMENT INFO"
-    assert line0.date == datetime.datetime(2023, 1, 25, 0, 0)
-    assert line0.date_user == datetime.datetime(2023, 1, 25, 0, 0)
-    # assert line0.payee == u"PAYEE"
-    assert line0.refnum == "A032-J30K20-03-JF021"
+        line0 = stmt.lines[0]
+
+        assert line0.amount == Decimal("1284.30")
+        assert line0.memo == u"PAYMENT INFO"
+        assert line0.date == datetime.datetime(2023, 1, 25, 0, 0)
+        assert line0.date_user == datetime.datetime(2023, 1, 25, 0, 0)
+        # assert line0.payee == u"PAYEE"
+        assert line0.refnum == "A032-J30K20-03-JF021"
