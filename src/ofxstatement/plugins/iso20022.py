@@ -80,6 +80,7 @@ class Iso20022Plugin(Plugin):
 class Iso20022Parser(AbstractStatementParser):
     version: CamtVersion
     xmlns: Dict[str, str]
+    PATH_TO_BIC = "./s:Acct/s:Svcr/s:FinInstnId/s:BIC"
 
     def __init__(
         self,
@@ -131,7 +132,7 @@ class Iso20022Parser(AbstractStatementParser):
     def _parse_statement_properties(self, tree: ET.ElementTree) -> None:
         stmt = self._get_statement_el(tree)
 
-        bnk = stmt.find("./s:Acct/s:Svcr/s:FinInstnId/s:BIC", self.xmlns)
+        bnk = stmt.find(PATH_TO_BIC, self.xmlns)
         if bnk is None:
             bnk = stmt.find("./s:Acct/s:Svcr/s:FinInstnId/s:Nm", self.xmlns)
         ccy = stmt.find("./s:Acct/s:Ccy", self.xmlns)
@@ -326,6 +327,7 @@ class Camt053_001_02_Parser(Camt053_001_01_Parser):
 
 
 class Camt053_001_03_Parser(Camt053_001_02_Parser):
+    PATH_TO_BIC = "./s:Acct/s:Svcr/s:FinInstnId/s:BICFI"
     pass
 
 
